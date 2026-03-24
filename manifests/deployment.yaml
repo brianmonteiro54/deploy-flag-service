@@ -11,7 +11,7 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      app: flag-service
+      app.kubernetes.io/name: flag-service
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -20,18 +20,14 @@ spec:
   template:
     metadata:
       labels:
-        app: flag-service
         app.kubernetes.io/name: flag-service
         app.kubernetes.io/component: flag
         app.kubernetes.io/part-of: togglemaster
     spec:
       initContainers:
-        - name: build-database-url
+        - name: build-db-url
           image: python:3.12-alpine
-          imagePullPolicy: IfNotPresent
-          command:
-            - /bin/sh
-            - -c
+          command: ["/bin/sh", "-c"]
           args:
             - |
               python3 << 'EOF'
@@ -47,10 +43,12 @@ spec:
               encoded_user = urllib.parse.quote(user, safe='')
               encoded_password = urllib.parse.quote(password, safe='')
 
-              database_url = f"postgres://{encoded_user}:{encoded_password}@{host}:{port}/{dbname}?sslmode=require"
+              db_url = f"postgresql://{encoded_user}:{encoded_password}@{host}:{port}/{dbname}?sslmode=require"
 
-              with open('/shared/DATABASE_URL', 'w') as f:
-                  f.write(database_url)
+              with open('/shared/database_url', 'w') as f:
+                  f.write(db_url)
+
+              print(f"DATABASE_URL criada para host: {host}")
               EOF
           env:
             - name: DB_HOST
@@ -58,16 +56,16 @@ spec:
                 secretKeyRef:
                   name: flag-service-config
                   key: FLAG_DB_HOST
-            - name: DB_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: flag-service-config
-                  key: FLAG_DB_PORT
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
                   name: flag-service-config
                   key: FLAG_DB_NAME
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: flag-service-config
+                  key: FLAG_DB_PORT
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -86,16 +84,15 @@ spec:
         - name: flag-service
           image: 420414435435.dkr.ecr.us-east-1.amazonaws.com/togglemaster/flag-service:6abb71c865cefa0046247a882fe1867fed3140e4
           imagePullPolicy: IfNotPresent
-          command:
-            - /bin/sh
-            - -c
-          args:
-            - |
-              export DATABASE_URL=$(cat /shared/DATABASE_URL)
-              exec ./flag-service
           ports:
             - name: http
               containerPort: 8002
+              protocol: TCP
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              export DATABASE_URL=$(cat /shared/database_url)
+              exec gunicorn --bind 0.0.0.0:8002 --workers 2 --threads 2 app:app
           env:
             - name: PORT
               value: "8002"
@@ -110,32 +107,39 @@ spec:
             - name: shared-data
               mountPath: /shared
               readOnly: true
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-            initialDelaySeconds: 20
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 3
-            successThreshold: 1
           readinessProbe:
             httpGet:
               path: /health
-              port: http
+              port: 8002
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 20
+            periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
-            successThreshold: 1
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 100m
+              memory: 128Mi
             limits:
-              cpu: 200m
-              memory: 256Mi
+              cpu: 300m
+              memory: 512Mi
 
       volumes:
         - name: shared-data
           emptyDir: {}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: flag-service
+      terminationGracePeriodSeconds: 30
+      restartPolicy: Always
