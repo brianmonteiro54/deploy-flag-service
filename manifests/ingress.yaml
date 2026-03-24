@@ -1,13 +1,14 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: flag-service
+  name: flag-service-ingress
   namespace: togglemaster-flag
   labels:
     app.kubernetes.io/name: flag-service
     app.kubernetes.io/component: flag
     app.kubernetes.io/part-of: togglemaster
   annotations:
+    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     #nginx.ingress.kubernetes.io/rewrite-target: /$2
