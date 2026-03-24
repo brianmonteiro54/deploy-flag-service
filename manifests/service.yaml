@@ -3,16 +3,10 @@ kind: Service
 metadata:
   name: flag-service
   namespace: togglemaster-flag
-  labels:
-    app.kubernetes.io/name: flag-service
-    app.kubernetes.io/component: flag
-    app.kubernetes.io/part-of: togglemaster
 spec:
   type: ClusterIP
   selector:
-    app: flag-service
+    app.kubernetes.io/name: flag-service
   ports:
-    - name: http
-      protocol: TCP
-      port: 8002
+    - port: 8002
       targetPort: 8002
