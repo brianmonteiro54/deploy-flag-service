@@ -6,7 +6,7 @@ Repositório GitOps contendo os manifestos Kubernetes do **Flag Service** da pla
 
 Este repositório é monitorado pelo **ArgoCD** e contém exclusivamente os manifestos declarativos de deploy do Flag Service. Qualquer alteração nos manifests dispara uma sincronização automática no cluster EKS.
 
-A tag da imagem Docker é atualizada automaticamente pelo pipeline de CI do repositório [`flag-service`](../flag-service) a cada push na branch `main`.
+A tag da imagem Docker é atualizada automaticamente pelo pipeline de CI do repositório [`flag-service`](https://github.com/brianmonteiro54/targeting-service) a cada push na branch `main`.
 
 ## Manifestos
 
