@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: flag-service
     app.kubernetes.io/component: flag
     app.kubernetes.io/part-of: togglemaster
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 2
   selector:
