@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/name: flag-service
     app.kubernetes.io/component: flag
     app.kubernetes.io/part-of: togglemaster
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 2
   selector:
@@ -82,7 +84,7 @@ spec:
 
       containers:
         - name: flag-service
-          image: 420414435435.dkr.ecr.us-east-1.amazonaws.com/togglemaster/flag-service:85d9850777ab6459a574710a84abf671950b08bd
+          image: 637423306132.dkr.ecr.us-east-1.amazonaws.com/togglemaster/flag-service:0e2076b08505b25ac9fa352160c8cf465986060d
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
