@@ -94,7 +94,7 @@ spec:
           args:
             - |
               export DATABASE_URL=$(cat /shared/database_url)
-              exec gunicorn --bind 0.0.0.0:8002 --workers 2 --threads 2 app:app
+              exec opentelemetry-instrument gunicorn --bind 0.0.0.0:8002 --workers 2 --threads 2 app:app
           env:
             - name: PORT
               value: "8002"
