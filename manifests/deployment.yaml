@@ -84,7 +84,7 @@ spec:
 
       containers:
         - name: flag-service
-          image: 789754462323.dkr.ecr.us-east-1.amazonaws.com/togglemaster/flag-service:a30447fd700583a5822485f1a64f41bf36b063e6
+          image: 730335650747.dkr.ecr.us-east-1.amazonaws.com/togglemaster/flag-service:a30447fd700583a5822485f1a64f41bf36b063e6
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
